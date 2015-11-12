@@ -1,0 +1,9 @@
+E:\Programming\DotNET\Projects\solAssaultCubeAimbot\projAssaultCubeAimbot\bin\Debug\projAssaultCubeAimbot.exe.config
+E:\Programming\DotNET\Projects\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.csprojResolveAssemblyReference.cache
+E:\Programming\DotNET\Projects\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.Form1.resources
+E:\Programming\DotNET\Projects\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.Properties.Resources.resources
+E:\Programming\DotNET\Projects\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.csproj.GenerateResource.Cache
+E:\Programming\DotNET\Projects\solAssaultCubeAimbot\projAssaultCubeAimbot\bin\Debug\projAssaultCubeAimbot.exe
+E:\Programming\DotNET\Projects\solAssaultCubeAimbot\projAssaultCubeAimbot\bin\Debug\projAssaultCubeAimbot.pdb
+E:\Programming\DotNET\Projects\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.exe
+E:\Programming\DotNET\Projects\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.pdb
