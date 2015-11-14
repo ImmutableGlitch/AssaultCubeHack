@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.cboProcess = new System.Windows.Forms.ComboBox();
             this.tmrProcess = new System.Windows.Forms.Timer(this.components);
             this.lblXpos = new System.Windows.Forms.Label();
             this.lblYpos = new System.Windows.Forms.Label();
@@ -48,17 +47,8 @@
             this.label8 = new System.Windows.Forms.Label();
             this.lblHealthEn = new System.Windows.Forms.Label();
             this.lblDistance = new System.Windows.Forms.Label();
+            this.btnAttach = new System.Windows.Forms.Button();
             this.SuspendLayout();
-            // 
-            // cboProcess
-            // 
-            this.cboProcess.FormattingEnabled = true;
-            this.cboProcess.Location = new System.Drawing.Point(105, 12);
-            this.cboProcess.Name = "cboProcess";
-            this.cboProcess.Size = new System.Drawing.Size(121, 21);
-            this.cboProcess.TabIndex = 0;
-            this.cboProcess.SelectedIndexChanged += new System.EventHandler(this.cboProcess_SelectedIndexChanged);
-            this.cboProcess.Click += new System.EventHandler(this.cboProcess_Click);
             // 
             // tmrProcess
             // 
@@ -218,11 +208,23 @@
             this.lblDistance.TabIndex = 17;
             this.lblDistance.Text = "label9";
             // 
+            // btnAttach
+            // 
+            this.btnAttach.BackColor = System.Drawing.Color.Red;
+            this.btnAttach.Location = new System.Drawing.Point(122, 12);
+            this.btnAttach.Name = "btnAttach";
+            this.btnAttach.Size = new System.Drawing.Size(75, 23);
+            this.btnAttach.TabIndex = 18;
+            this.btnAttach.Text = "Attach";
+            this.btnAttach.UseVisualStyleBackColor = false;
+            this.btnAttach.Click += new System.EventHandler(this.btnAttach_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(318, 130);
+            this.Controls.Add(this.btnAttach);
             this.Controls.Add(this.lblDistance);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.lblHealthEn);
@@ -240,7 +242,6 @@
             this.Controls.Add(this.lblZpos);
             this.Controls.Add(this.lblYpos);
             this.Controls.Add(this.lblXpos);
-            this.Controls.Add(this.cboProcess);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.Name = "Form1";
@@ -253,8 +254,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.ComboBox cboProcess;
         private System.Windows.Forms.Timer tmrProcess;
         private System.Windows.Forms.Label lblXpos;
         private System.Windows.Forms.Label lblYpos;
@@ -273,6 +272,7 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label lblHealthEn;
         private System.Windows.Forms.Label lblDistance;
+        private System.Windows.Forms.Button btnAttach;
     }
 }
 
