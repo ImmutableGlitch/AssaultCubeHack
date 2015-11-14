@@ -35,6 +35,7 @@ namespace projAssaultCubeAimbot
         bool gameFound = false;
         int currentTarget = -1;
 
+        //TODO: multi array to store XYZ coords. float[2,3]
         float X = 0.0f;
         float Y = 0.0f;
         float Z = 0.0f;
@@ -44,11 +45,6 @@ namespace projAssaultCubeAimbot
             InitializeComponent();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            tmrProcess.Enabled = true;
-        }
-
         private void SetupEnemyVars()
         {
             PlayerDataAddresses.PlayerData enemyOne = new PlayerDataAddresses.PlayerData();
@@ -56,7 +52,7 @@ namespace projAssaultCubeAimbot
             enemyOne.baseAddr = acClient.MainModule.BaseAddress.ToInt32() + 0x0010F30C; //base address
             enemyOne.multiLevel = enemyOneMultiLevel; //pointer offsets
             enemyOne.offsets = mainPlayer.offsets; //Enemy has the same offsets as player for the health etc
-            enemyAddresses.Add(enemyOne);//add this enemy to our list
+            enemyAddresses.Add(enemyOne);
         }
 
         private void tmrProcess_Tick(object sender, EventArgs e)
@@ -69,14 +65,14 @@ namespace projAssaultCubeAimbot
                 lblZpos.Text = mem.ReadFloat(playerBase + mainPlayer.offsets.zPos).ToString();
                 lblHealth.Text = mem.ReadInt(playerBase + mainPlayer.offsets.health).ToString();
 
-                int enemyBase = mem.ReadMultiLevelPointer(enemyAddresses[0].baseAddr, 4, enemyAddresses[0].multiLevel); //store actual pointer location
-                lblXposEn.Text = mem.ReadFloat(enemyBase + mainPlayer.offsets.xPos).ToString(); //use pointer with X axis offset, store that float value as a string in label
+                int enemyBase = mem.ReadMultiLevelPointer(enemyAddresses[0].baseAddr, 4, enemyAddresses[0].multiLevel);
+                lblXposEn.Text = mem.ReadFloat(enemyBase + mainPlayer.offsets.xPos).ToString();
                 lblYposEn.Text = mem.ReadFloat(enemyBase + mainPlayer.offsets.yPos).ToString();
                 lblZposEn.Text = mem.ReadFloat(enemyBase + mainPlayer.offsets.zPos).ToString();
                 lblHealthEn.Text = mem.ReadInt(enemyBase + mainPlayer.offsets.health).ToString(); //same offset as player
 
                 int aimHotkey = ProcessMemoryReaderApi.GetKeyState(02);//right mouse click, virtual key with C++ function
-                if ((aimHotkey & 0x8000) != 0) //8000 checks that we are holding the correct vKey?
+                if ((aimHotkey & 0x8000) != 0) //CHECK: why offset/hex is needed here
                 {
                     Aimbot();
                 }
@@ -85,7 +81,7 @@ namespace projAssaultCubeAimbot
                     currentTarget = -1;
                 }
 
-                //TELEPORTER BELOW WORKS BUT THE HOTKEYS ARE FUCKED. THEY WONT RESPOND UNLESS ITS LEFT OR RIGHT MOUSE CLICK
+                //TODO: TELEPORTER BELOW WORKS BUT THE HOTKEYS ARE FUCKED. THEY WONT RESPOND UNLESS ITS LEFT OR RIGHT MOUSE CLICK
 
                 //int teleSaveHotkey = ProcessMemoryReaderApi.GetKeyState(02);//up 26
                 //if ((teleSaveHotkey & 0x8000) != 0)
@@ -116,11 +112,9 @@ namespace projAssaultCubeAimbot
 
             try
             {
-                //if (allProcesses != null)
                 if (acClient != null)
                 {
-                    //if (allProcesses[0].HasExited) //run program as admin! to check that assaultCube process has ended or not
-                    if (acClient.HasExited) //run program as admin! to check that assaultCube process has ended or not
+                    if (acClient.HasExited)
                     {
                         gameFound = false; //game has ended so stop performing readMemory etc
                         btnAttach.BackColor = Color.Red;
@@ -129,8 +123,9 @@ namespace projAssaultCubeAimbot
             }
             catch (Exception ex)
             {
-                //MessageBox.Show(ex.Message);
-                //throw ex;
+                //Run program as admin if error is appearing due to HasExited method
+                MessageBox.Show(ex.Message);
+                throw ex;
             }
         }
 
@@ -180,9 +175,9 @@ namespace projAssaultCubeAimbot
             }//if alive
         }
 
-        private PlayerDataAddresses.PlayerDataVec GetPlayerData(PlayerDataAddresses.PlayerData updatePlayer) //CHECK WHY THERE IS AN UNUSED ARGUMENT
+        private PlayerDataAddresses.PlayerDataVec GetPlayerData(PlayerDataAddresses.PlayerData updatePlayer)
         {
-            //This method constantly reads in game values
+            //This method is called non-stop to read in game values
 
             //Create object that will store the in game values
             PlayerDataAddresses.PlayerDataVec playerReturn = new PlayerDataAddresses.PlayerDataVec();
@@ -202,6 +197,7 @@ namespace projAssaultCubeAimbot
 
         private int FindClosestEnemyIndex(PlayerDataAddresses.PlayerDataVec[] enemiesVectorArray, PlayerDataAddresses.PlayerDataVec myPosition)
         {
+            //TODO: Clean this method up
             float[] distances = new float[enemiesVectorArray.Length]; //array of distances depending on number of enemy targets
 
             for (int i = 0; i < enemiesVectorArray.Length; i++)
@@ -251,16 +247,16 @@ namespace projAssaultCubeAimbot
             //yaw is for X, which looks left and right
             //pitch is for Y, which looks up and down
             //roll is for Z, which isn't used in this case
-            float pitch1 = (float)Math.Atan2(enemyVector.zPos - playerVector.zPos, Get3dDistance(enemyVector, playerVector)) * 180 / PI; //finding the new value of where to aim the mouse
-            float pitch2 = (float)Math.Asin((enemyVector.zPos - playerVector.zPos) / Get3dDistance(enemyVector, playerVector)) * 180 / PI; //New pitch Code suggestion by fleep or youtube comment
+            float pitch1 = (float)Math.Atan2(enemyVector.zPos - playerVector.zPos, Get3dDistance(enemyVector, playerVector)) * 180 / PI; //First method uses Atan2, not sure who suggested
+            float pitch2 = (float)Math.Asin((enemyVector.zPos - playerVector.zPos) / Get3dDistance(enemyVector, playerVector)) * 180 / PI; //Method used by Fleep
             float RotationV = (float)(Math.Atan2(enemyVector.zPos - playerVector.zPos, Math.Sqrt((enemyVector.xPos - playerVector.xPos) * (enemyVector.xPos - playerVector.xPos) + (enemyVector.yPos - playerVector.yPos) * (enemyVector.yPos - playerVector.yPos))) * 180.00 / Math.PI);//New Code suggestion by creator of other aimbot...much more advanced
 
             float yawX = -(float)Math.Atan2(enemyVector.xPos - playerVector.xPos, enemyVector.yPos - playerVector.yPos)
                 / PI * 180 + 180;
-
-            //Either option 1,2 or 3 for the yMouse. Learn the calculations
+            
             mem.WriteFloat(playerBase + mainPlayer.offsets.xMouse, yawX);
 
+            //Either option 1,2 or 3 for the yMouse. Learn the calculations
             //mem.WriteFloat(playerBase + mainPlayer.offsets.yMouse, pitch1);
             //mem.WriteFloat(playerBase + mainPlayer.offsets.yMouse, pitch2);
             mem.WriteFloat(playerBase + mainPlayer.offsets.yMouse, RotationV);
@@ -274,19 +270,18 @@ namespace projAssaultCubeAimbot
                 if (p.ProcessName.ToString().Contains("ac_client"))
                 {
                     acClient = p;
-                    mainModule = acClient.MainModule;//get module of the process?
-                    mem.ReadProcess = acClient;//read the process
-                    mem.OpenProcess();//open the process
+                    mainModule = acClient.MainModule;
+                    mem.ReadProcess = acClient;
+                    mem.OpenProcess();
                     gameFound = true;
 
-                    mainPlayer.baseAddr = playerBase; //create a player object and set the base addr to the global int variable so it is easy to change
-                    mainPlayer.multiLevel = playerMultiLevel; //set offset for players base addr to create the pointer
-
-                    //this is xzY. for some reason xYz stops aimbot working
-                    mainPlayer.offsets = new PlayerDataAddresses(playerOffsets.xMouse, playerOffsets.yMouse, playerOffsets.xPos, playerOffsets.zPos, playerOffsets.yPos, playerOffsets.health);//ISSUE HERE
+                    mainPlayer.baseAddr = playerBase; //Global address variable
+                    mainPlayer.multiLevel = playerMultiLevel; //set offset for base addr to create the pointer
+                    
+                    mainPlayer.offsets = new PlayerDataAddresses(playerOffsets.xMouse, playerOffsets.yMouse, playerOffsets.xPos, playerOffsets.zPos, playerOffsets.yPos, playerOffsets.health);//CHECK: Why xzY, and not xYz
 
                     SetupEnemyVars();
-                    btnAttach.BackColor = Color.Green;
+                    btnAttach.BackColor = Color.Green; //User Feedback
                     break;
                 }
             }

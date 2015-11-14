@@ -52,6 +52,7 @@
             // 
             // tmrProcess
             // 
+            this.tmrProcess.Enabled = true;
             this.tmrProcess.Interval = 10;
             this.tmrProcess.Tick += new System.EventHandler(this.tmrProcess_Tick);
             // 
@@ -247,7 +248,6 @@
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "AssaultCube v1.2 - Aimbot";
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
