@@ -35,10 +35,7 @@ namespace projAssaultCubeAimbot
         bool gameFound = false;
         int currentTarget = -1;
 
-        //TODO: multi array to store XYZ coords. float[2,3]
-        float X = 0.0f;
-        float Y = 0.0f;
-        float Z = 0.0f;
+        float[,] teleCoords = new float[2, 3];
 
         public Form1()
         {
@@ -59,18 +56,22 @@ namespace projAssaultCubeAimbot
         {
             if (gameFound)
             {
-                int playerBase = mem.ReadMultiLevelPointer(mainPlayer.baseAddr, 4, mainPlayer.multiLevel); //store actual pointer location
-                lblXpos.Text = mem.ReadFloat(playerBase + mainPlayer.offsets.xPos).ToString(); //use pointer with X axis offset, store that float value as a string in label
+                //Get ingame pointer for player and enemy
+                int playerBase = mem.ReadMultiLevelPointer(mainPlayer.baseAddr, 4, mainPlayer.multiLevel);
+                int enemyBase = mem.ReadMultiLevelPointer(enemyAddresses[0].baseAddr, 4, enemyAddresses[0].multiLevel);
+
+                //Upodate labels with data
+                lblXpos.Text = mem.ReadFloat(playerBase + mainPlayer.offsets.xPos).ToString();
                 lblYpos.Text = mem.ReadFloat(playerBase + mainPlayer.offsets.yPos).ToString();
                 lblZpos.Text = mem.ReadFloat(playerBase + mainPlayer.offsets.zPos).ToString();
                 lblHealth.Text = mem.ReadInt(playerBase + mainPlayer.offsets.health).ToString();
-
-                int enemyBase = mem.ReadMultiLevelPointer(enemyAddresses[0].baseAddr, 4, enemyAddresses[0].multiLevel);
+                
                 lblXposEn.Text = mem.ReadFloat(enemyBase + mainPlayer.offsets.xPos).ToString();
                 lblYposEn.Text = mem.ReadFloat(enemyBase + mainPlayer.offsets.yPos).ToString();
                 lblZposEn.Text = mem.ReadFloat(enemyBase + mainPlayer.offsets.zPos).ToString();
                 lblHealthEn.Text = mem.ReadInt(enemyBase + mainPlayer.offsets.health).ToString(); //same offset as player
 
+                //AIMBOT
                 int aimHotkey = ProcessMemoryReaderApi.GetKeyState(02);//right mouse click, virtual key with C++ function
                 if ((aimHotkey & 0x8000) != 0) //CHECK: why offset/hex is needed here
                 {
@@ -81,34 +82,65 @@ namespace projAssaultCubeAimbot
                     currentTarget = -1;
                 }
 
-                //TODO: TELEPORTER BELOW WORKS BUT THE HOTKEYS ARE FUCKED. THEY WONT RESPOND UNLESS ITS LEFT OR RIGHT MOUSE CLICK
+                //TELEPORTER
+                
+                /*
+                TODO: Hotkeys won't respond
 
-                //int teleSaveHotkey = ProcessMemoryReaderApi.GetKeyState(02);//up 26
-                //if ((teleSaveHotkey & 0x8000) != 0)
-                //{
-                //    X = mem.ReadFloat(playerBase + mainPlayer.offsets.xPos);
-                //    Y = mem.ReadFloat(playerBase + mainPlayer.offsets.yPos);
-                //    Z = mem.ReadFloat(playerBase + mainPlayer.offsets.zPos);
-                //    //MessageBox.Show(string.Format("Saved:X={0} Y={1} Z={2}", X, Y, Z));
-                //}
-                //else
-                //{
-                //    currentTarget = -1;
-                //}
+                VK_F1 = 0x70, SAVE 1
+                VK_F2 = 0x71, SAVE 2
+                VK_F3 = 0x72, LOAD 1
+                VK_F4 = 0x73, LOAD 2
+                */
 
-                //int teleJumpHotkey = ProcessMemoryReaderApi.GetKeyState(01);//down 28
-                //if ((teleJumpHotkey & 0x8000) != 0)
-                //{
-                //    mem.WriteFloat(playerBase + mainPlayer.offsets.xPos, X);
-                //    mem.WriteFloat(playerBase + mainPlayer.offsets.yPos, Y);
-                //    mem.WriteFloat(playerBase + mainPlayer.offsets.zPos, Z);
-                //    //MessageBox.Show(string.Format("Jumping:X={0} Y={1} Z={2}", X, Y, Z));
-                //}
-                //else
-                //{
-                //    currentTarget = -1;
-                //}
-            }//if
+                int teleSave1 = ProcessMemoryReaderApi.GetKeyState(0x70);
+                if ((teleSave1 & 0x8000) != 0)
+                {
+                    teleCoords[0, 0] = mem.ReadFloat(playerBase + mainPlayer.offsets.xPos);
+                    teleCoords[0, 1] = mem.ReadFloat(playerBase + mainPlayer.offsets.yPos);
+                    teleCoords[0, 2] = mem.ReadFloat(playerBase + mainPlayer.offsets.zPos);
+                }
+                else
+                {
+                    currentTarget = -1;
+                }
+
+                int teleSave2 = ProcessMemoryReaderApi.GetKeyState(0x71);
+                if ((teleSave2 & 0x8000) != 0)
+                {
+                    teleCoords[1, 0] = mem.ReadFloat(playerBase + mainPlayer.offsets.xPos);
+                    teleCoords[1, 1] = mem.ReadFloat(playerBase + mainPlayer.offsets.yPos);
+                    teleCoords[1, 2] = mem.ReadFloat(playerBase + mainPlayer.offsets.zPos);
+                }
+                else
+                {
+                    currentTarget = -1;
+                }
+
+                int teleJump1 = ProcessMemoryReaderApi.GetKeyState(0x72);
+                if ((teleJump1 & 0x8000) != 0)
+                {
+                    mem.WriteFloat(playerBase + mainPlayer.offsets.xPos, teleCoords[0, 0]);
+                    mem.WriteFloat(playerBase + mainPlayer.offsets.yPos, teleCoords[0, 1]);
+                    mem.WriteFloat(playerBase + mainPlayer.offsets.zPos, teleCoords[0, 2]);
+                }
+                else
+                {
+                    currentTarget = -1;
+                }
+
+                int teleJump2 = ProcessMemoryReaderApi.GetKeyState(0x73);
+                if ((teleJump2 & 0x8000) != 0)
+                {
+                    mem.WriteFloat(playerBase + mainPlayer.offsets.xPos, teleCoords[1, 0]);
+                    mem.WriteFloat(playerBase + mainPlayer.offsets.yPos, teleCoords[1, 1]);
+                    mem.WriteFloat(playerBase + mainPlayer.offsets.zPos, teleCoords[1, 2]);
+                }
+                else
+                {
+                    currentTarget = -1;
+                }
+            }//if gamefound
 
             try
             {
@@ -232,9 +264,9 @@ namespace projAssaultCubeAimbot
         {
             return (float)
                 (Math.Sqrt(
-                ((to.xPos - from.xPos) * (to.xPos - from.xPos)) +
-                ((to.yPos - from.yPos) * (to.yPos - from.yPos)) +
-                ((to.zPos - from.zPos) * (to.zPos - from.zPos))
+                Math.Pow((to.xPos - from.xPos), 2) +
+                Math.Pow((to.yPos - from.yPos), 2) +
+                Math.Pow((to.zPos - from.zPos), 2)
                 ));
         }
 
@@ -253,7 +285,7 @@ namespace projAssaultCubeAimbot
 
             float yawX = -(float)Math.Atan2(enemyVector.xPos - playerVector.xPos, enemyVector.yPos - playerVector.yPos)
                 / PI * 180 + 180;
-            
+
             mem.WriteFloat(playerBase + mainPlayer.offsets.xMouse, yawX);
 
             //Either option 1,2 or 3 for the yMouse. Learn the calculations
@@ -265,7 +297,7 @@ namespace projAssaultCubeAimbot
         private void btnAttach_Click(object sender, EventArgs e)
         {
             allProcesses = Process.GetProcesses();
-            foreach( Process p in allProcesses)
+            foreach (Process p in allProcesses)
             {
                 if (p.ProcessName.ToString().Contains("ac_client"))
                 {
@@ -277,7 +309,7 @@ namespace projAssaultCubeAimbot
 
                     mainPlayer.baseAddr = playerBase; //Global address variable
                     mainPlayer.multiLevel = playerMultiLevel; //set offset for base addr to create the pointer
-                    
+
                     mainPlayer.offsets = new PlayerDataAddresses(playerOffsets.xMouse, playerOffsets.yMouse, playerOffsets.xPos, playerOffsets.zPos, playerOffsets.yPos, playerOffsets.health);//CHECK: Why xzY, and not xYz
 
                     SetupEnemyVars();
