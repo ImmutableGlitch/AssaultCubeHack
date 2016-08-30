@@ -1,31 +1,27 @@
-﻿using System;
+﻿using ProcessMemoryReaderLib;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using ProcessMemoryReaderLib;
-using System.Globalization;
 using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace projAssaultCubeAimbot
 {
     public partial class Form1 : Form
     {
 
-        Process[] allProcesses;
-        Process acClient;
+        Process[] AC;
         ProcessModule mainModule;
         ProcessMemoryReader mem = new ProcessMemoryReader();
         PlayerDataAddresses.PlayerData mainPlayer = new PlayerDataAddresses.PlayerData();
 
         //Addresses
         int playerBase = 0x509B74; //find player using the base address
-        int[] playerMultiLevel = new int[] { 0x30 }; //offset for the base address to create the pointer. array is used so games with multiple offsets can be used
-        PlayerDataAddresses playerOffsets = new PlayerDataAddresses(0x10, 0x14, 0x4, 0xC, 0x8, 0xC8);//mouse x + y, xyz, health
+        //int[] playerMultiLevel = new int[] { 0x30 }; //offset for the base address to create the pointer. array is used so games with multiple offsets can be used
+        int[] playerMultiLevel = new int[] { 0x0 }; //The offset of 30 was only used to bring us closer to relevant player struct
+        //This means any code below using this variable will need to be removed/modified
+        //PlayerDataAddresses playerOffsets = new PlayerDataAddresses(0x10, 0x14, 0x4, 0xC, 0x8, 0xC8);//mouse x + y, xyz, health
+        PlayerDataAddresses playerOffsets = new PlayerDataAddresses(0x40, 0x44, 0x34, 0x3C, 0x38, 0xF8); //Same Offsets with the extra 30 added
 
 
         List<PlayerDataAddresses.PlayerData> enemyAddresses = new List<PlayerDataAddresses.PlayerData>();
@@ -46,7 +42,7 @@ namespace projAssaultCubeAimbot
         {
             PlayerDataAddresses.PlayerData enemyOne = new PlayerDataAddresses.PlayerData();
             //"ac_client.exe"+0010F30C offsets 1c,4,28,30
-            enemyOne.baseAddr = acClient.MainModule.BaseAddress.ToInt32() + 0x0010F30C; //base address
+            enemyOne.baseAddr = AC[0].MainModule.BaseAddress.ToInt32() + 0x0010F30C; //base address
             enemyOne.multiLevel = enemyOneMultiLevel; //pointer offsets
             enemyOne.offsets = mainPlayer.offsets; //Enemy has the same offsets as player for the health etc
             enemyAddresses.Add(enemyOne);
@@ -54,10 +50,9 @@ namespace projAssaultCubeAimbot
 
         private void tmrProcess_Tick(object sender, EventArgs e)
         {
-            if (gameFound)
+            if (gameFound && !AC[0].HasExited)
             {
-                //Get ingame pointer for player and enemy
-                int playerBase = mem.ReadMultiLevelPointer(mainPlayer.baseAddr, 4, mainPlayer.multiLevel);
+                int playerBase = mem.ReadMultiLevelPointer(mainPlayer.baseAddr, 4, mainPlayer.multiLevel); //Returns the current base address in memory
                 int enemyBase = mem.ReadMultiLevelPointer(enemyAddresses[0].baseAddr, 4, enemyAddresses[0].multiLevel);
 
                 //Upodate labels with data
@@ -65,11 +60,14 @@ namespace projAssaultCubeAimbot
                 lblYpos.Text = mem.ReadFloat(playerBase + mainPlayer.offsets.yPos).ToString();
                 lblZpos.Text = mem.ReadFloat(playerBase + mainPlayer.offsets.zPos).ToString();
                 lblHealth.Text = mem.ReadInt(playerBase + mainPlayer.offsets.health).ToString();
-                
+
                 lblXposEn.Text = mem.ReadFloat(enemyBase + mainPlayer.offsets.xPos).ToString();
                 lblYposEn.Text = mem.ReadFloat(enemyBase + mainPlayer.offsets.yPos).ToString();
                 lblZposEn.Text = mem.ReadFloat(enemyBase + mainPlayer.offsets.zPos).ToString();
                 lblHealthEn.Text = mem.ReadInt(enemyBase + mainPlayer.offsets.health).ToString(); //same offset as player
+
+                //Health hack, doesnt work online
+                //mem.WriteInt(playerBase + mainPlayer.offsets.health, 999);
 
                 //AIMBOT
                 int aimHotkey = ProcessMemoryReaderApi.GetKeyState(02);//right mouse click, virtual key with C++ function
@@ -83,10 +81,8 @@ namespace projAssaultCubeAimbot
                 }
 
                 //TELEPORTER
-                
-                /*
-                TODO: Hotkeys won't respond
 
+                /*
                 VK_F1 = 0x70, SAVE 1
                 VK_F2 = 0x71, SAVE 2
                 VK_F3 = 0x72, LOAD 1
@@ -141,23 +137,16 @@ namespace projAssaultCubeAimbot
                     currentTarget = -1;
                 }
             }//if gamefound
-
-            try
+            else
             {
-                if (acClient != null)
-                {
-                    if (acClient.HasExited)
-                    {
-                        gameFound = false; //game has ended so stop performing readMemory etc
-                        btnAttach.BackColor = Color.Red;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                //Run program as admin if error is appearing due to HasExited method
-                MessageBox.Show(ex.Message);
-                throw ex;
+                gameFound = false; //game has ended so stop performing readMemory etc
+                btnAttach.BackColor = Color.Red;
+                btnAttach.Enabled = true;
+                //Blank all labels, useful if many labels are on form
+                //foreach (Control label in this.Controls.OfType<Label>())
+                //{
+                //    label.Text = "";
+                //}
             }
         }
 
@@ -229,7 +218,7 @@ namespace projAssaultCubeAimbot
 
         private int FindClosestEnemyIndex(PlayerDataAddresses.PlayerDataVec[] enemiesVectorArray, PlayerDataAddresses.PlayerDataVec myPosition)
         {
-            //TODO: Clean this method up
+            //TODO: Clean this method up, then rename all variables in this class and PlayerInfo. Use structs instead of class
             float[] distances = new float[enemiesVectorArray.Length]; //array of distances depending on number of enemy targets
 
             for (int i = 0; i < enemiesVectorArray.Length; i++)
@@ -296,26 +285,27 @@ namespace projAssaultCubeAimbot
 
         private void btnAttach_Click(object sender, EventArgs e)
         {
-            allProcesses = Process.GetProcesses();
-            foreach (Process p in allProcesses)
+            try
             {
-                if (p.ProcessName.ToString().Contains("ac_client"))
-                {
-                    acClient = p;
-                    mainModule = acClient.MainModule;
-                    mem.ReadProcess = acClient;
-                    mem.OpenProcess();
-                    gameFound = true;
+                AC = Process.GetProcessesByName("ac_client");
+                mainModule = AC[0].MainModule;
+                mem.ReadProcess = AC[0];
+                mem.OpenProcess();
+                gameFound = true;
 
-                    mainPlayer.baseAddr = playerBase; //Global address variable
-                    mainPlayer.multiLevel = playerMultiLevel; //set offset for base addr to create the pointer
+                mainPlayer.baseAddr = playerBase; //Global address variable
+                mainPlayer.multiLevel = playerMultiLevel; //set offset for base addr to create the pointer
 
-                    mainPlayer.offsets = new PlayerDataAddresses(playerOffsets.xMouse, playerOffsets.yMouse, playerOffsets.xPos, playerOffsets.zPos, playerOffsets.yPos, playerOffsets.health);//CHECK: Why xzY, and not xYz
+                mainPlayer.offsets = new PlayerDataAddresses(playerOffsets.xMouse, playerOffsets.yMouse, playerOffsets.xPos, playerOffsets.zPos, playerOffsets.yPos, playerOffsets.health);//CHECK: Why xzY, and not xYz
 
-                    SetupEnemyVars();
-                    btnAttach.BackColor = Color.Green; //User Feedback
-                    break;
-                }
+                SetupEnemyVars();
+                btnAttach.BackColor = Color.Green; //User Feedback
+                btnAttach.Enabled = false;
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                MessageBox.Show("Game not found!");
+                //throw ex;
             }
         }
     }

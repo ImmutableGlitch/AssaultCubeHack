@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace ProcessMemoryReaderLib
 {
-    //Handy class that contains virtual key codes and C++ functions. Allows for easy interaction between processes and memory using the methods below. Not sure who made this class.
+    // Handy class that contains virtual key codes and C++ functions. Allows for easy interaction between processes and memory
     class ProcessMemoryReaderApi
     {
         public const uint PROCESS_VM_READ = (0x0010);
@@ -86,7 +86,7 @@ namespace ProcessMemoryReaderLib
 
             buffer = new byte[bytesToRead];
             IntPtr ptrBytesReaded;
-            ProcessMemoryReaderApi.ReadProcessMemory(procHandle, (IntPtr)MemoryAddress, buffer, bytesToRead, out ptrBytesReaded);
+            ProcessMemoryReaderApi.ReadProcessMemory(procHandle, (IntPtr)MemoryAddress, buffer, bytesToRead, out ptrBytesReaded); //The memory address will be the
             ProcessMemoryReaderApi.CloseHandle(procHandle);
             return ptrBytesReaded.ToInt32();
         }
@@ -128,7 +128,7 @@ namespace ProcessMemoryReaderLib
                     (uint)btBuffer.Length,
                     out lpOutStorage);
             }
-            return pointerAddy; 
+            return pointerAddy;
         }
 
         public byte ReadByte(int MemoryAddress)
