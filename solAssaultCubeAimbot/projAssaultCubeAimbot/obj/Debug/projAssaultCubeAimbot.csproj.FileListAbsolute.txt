@@ -16,3 +16,12 @@ E:\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssa
 E:\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.Form1.resources
 E:\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.Properties.Resources.resources
 E:\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.csproj.GenerateResource.Cache
+E:\Hobbies\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\bin\Debug\projAssaultCubeAimbot.exe.config
+E:\Hobbies\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.exe
+E:\Hobbies\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.pdb
+E:\Hobbies\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\bin\Debug\projAssaultCubeAimbot.exe
+E:\Hobbies\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\bin\Debug\projAssaultCubeAimbot.pdb
+E:\Hobbies\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.csprojResolveAssemblyReference.cache
+E:\Hobbies\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.Form1.resources
+E:\Hobbies\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.Properties.Resources.resources
+E:\Hobbies\Programming\Git\repos\assaultcubeaimbotteleport\solAssaultCubeAimbot\projAssaultCubeAimbot\obj\Debug\projAssaultCubeAimbot.csproj.GenerateResource.Cache
