@@ -20,6 +20,9 @@ namespace projAssaultCubeAimbot
         bool gameFound = false;
         int target = -1;
 
+        // 1 radian = 180/PI degrees
+        float radianToDegree = 180 / (float)Math.PI;
+
         float[,] teleCoords = new float[2, 3];
 
         public Form1()
@@ -54,16 +57,18 @@ namespace projAssaultCubeAimbot
         private void setupPlayerAndEnemy()
         {
             // Example: "ac_client.exe" + 10F4F4 + offsets
-            p = new Player(0x10F4F4 , 0x40 , 0x44 , 0x34 , 0x3C , 0x38 , 0xF8);
-            p.multi = new int[] { 0x0 };
+            p = new Player(0x10F4F4, 0x40, 0x44, 0x34, 0x38, 0x3C, 0xF8)
+            {
+                multi = new int[] { 0x0 }
+            };
             p.pointerAddress = mem.ReadMultiLevelPointer(pro[0].MainModule.BaseAddress.ToInt32() + p.baseAddr , 4 , p.multi);
 
-            // Find out how many enemies in game
+            // TODO: Find out how many enemies in game
             int totalEnemies = 1;
             for(int i = 1; i <= totalEnemies; i++)
             {
                 // Player, enemies and team all share same offset
-                var e = new Player(0x10F4F8 , 0x40 , 0x44 , 0x34 , 0x3C , 0x38 , 0xF8);
+                var e = new Player(0x10F4F8 , 0x40 , 0x44 , 0x34 , 0x38 , 0x3C , 0xF8);
                 e.multi = new int[] { 0x4*i, 0x0 };
                 e.pointerAddress = mem.ReadMultiLevelPointer(pro[0].MainModule.BaseAddress.ToInt32() + e.baseAddr , 4 , e.multi);
                 this.e.Add(e);
@@ -153,34 +158,34 @@ namespace projAssaultCubeAimbot
         private void getCurrentData()
         {
             // Read Data, store it within objects and labels
-            p.PosX = mem.ReadFloat(p.pointerAddress + p.xPos);
-            p.PosY = mem.ReadFloat(p.pointerAddress + p.yPos);
-            p.PosZ = mem.ReadFloat(p.pointerAddress + p.zPos);
-            p.Health = mem.ReadInt(p.pointerAddress + p.health);
+            p.PosX_Value = mem.ReadFloat(p.pointerAddress + p.xPos);
+            p.PosY_Value = mem.ReadFloat(p.pointerAddress + p.yPos);
+            p.PosZ_Value = mem.ReadFloat(p.pointerAddress + p.zPos);
+            p.Health_Value = mem.ReadInt(p.pointerAddress + p.health);
 
             //for (int i = 0; i < e.Count; i++)
             //{
             //
             //}
-            e[0].PosX = mem.ReadFloat(e[0].pointerAddress + e[0].xPos);
-            e[0].PosY = mem.ReadFloat(e[0].pointerAddress + e[0].yPos);
-            e[0].PosZ = mem.ReadFloat(e[0].pointerAddress + e[0].zPos);
-            e[0].Health = mem.ReadInt(e[0].pointerAddress + e[0].health);
+            e[0].PosX_Value = mem.ReadFloat(e[0].pointerAddress + e[0].xPos);
+            e[0].PosY_Value = mem.ReadFloat(e[0].pointerAddress + e[0].yPos);
+            e[0].PosZ_Value = mem.ReadFloat(e[0].pointerAddress + e[0].zPos);
+            e[0].Health_Value = mem.ReadInt(e[0].pointerAddress + e[0].health);
 
-            lblXpos.Text = p.PosX.ToString();
-            lblYpos.Text = p.PosY.ToString();
-            lblZpos.Text = p.PosZ.ToString();
-            lblHealth.Text = p.Health.ToString();
+            lblXpos.Text = p.PosX_Value.ToString("0.00");
+            lblZpos.Text = p.PosZ_Value.ToString("0.00");
+            lblYpos.Text = p.PosY_Value.ToString("0.00");
+            lblHealth.Text = p.Health_Value.ToString();
 
-            lblXposEn.Text = e[0].PosX.ToString();
-            lblYposEn.Text = e[0].PosY.ToString();
-            lblZposEn.Text = e[0].PosZ.ToString();
-            lblHealthEn.Text = e[0].Health.ToString();
+            lblXposEn.Text = e[0].PosX_Value.ToString("0.00");
+            lblYposEn.Text = e[0].PosY_Value.ToString("0.00");
+            lblZposEn.Text = e[0].PosZ_Value.ToString("0.00");
+            lblHealthEn.Text = e[0].Health_Value.ToString();
         }
 
         private void Aimbot()
         {
-            if (p.Health > 0) // player alive
+            if (p.Health_Value > 0) // player alive
             {
                 if (target == -1 || e[target].health <= 0) // if no target selected, or target dead
                 {
@@ -225,31 +230,25 @@ namespace projAssaultCubeAimbot
             // Pythagoras for 3D vector magnitude
             return (float)
                 (Math.Sqrt(
-                    Math.Pow((e.PosX - p.PosX) , 2) +
-                    Math.Pow((e.PosY - p.PosY) , 2) +
-                    Math.Pow((e.PosZ - p.PosZ) , 2)
+                    Math.Pow((e.PosX_Value - p.PosX_Value) , 2) +
+                    Math.Pow((e.PosY_Value - p.PosY_Value) , 2) +
+                    Math.Pow((e.PosZ_Value - p.PosZ_Value) , 2)
                 ));
         }
 
         private void AimAtTarget(Player e)
         {
-            var PI = (float)Math.PI;
+            // [asin] returns arc sine of x in the interval -PI/2 to PI/2
+            float pitch = (float)Math.Asin((e.PosZ_Value - p.PosZ_Value) / Get3dDistance(e)) * radianToDegree;
 
-            float pitch = (float)Math.Atan2(e.PosY - p.PosY, Get3dDistance(e)) * 180 / PI;
-            //float pitch = (float)Math.Asin((e.PosZ - p.PosZ) / Get3dDistance(e)) * 180 / PI;
+            // [atan2] returns arc tangent of y/x in the interval -PI to PI radians
+            float yaw = -(float)Math.Atan2(e.PosX_Value - p.PosX_Value, e.PosY_Value - p.PosY_Value) * radianToDegree + 180;
 
-            float rotation = (float)(Math.Atan2(e.PosZ - p.PosZ, Math.Sqrt((e.PosX - p.PosX)
-                * (e.PosX - p.PosX) + (e.PosY - p.PosY) * (e.PosY - p.PosY))) * 180.00 / PI);
-
-            float yaw = -(float)Math.Atan2(e.PosX - p.PosX, e.PosZ - p.PosZ)/ PI * 180 + 180;
-
+            // pitch is for Y, which looks up and down
+            mem.WriteFloat(p.pointerAddress + p.yMouse, pitch);
 
             // yaw is for X, which looks left and right
-            // pitch is for Y, which looks up and down
-            // Select pitch or rotation calculation for Y
-
             mem.WriteFloat(p.pointerAddress + p.xMouse, yaw);
-            mem.WriteFloat(p.pointerAddress + p.yMouse, pitch);
         }
     }
 }

@@ -17,11 +17,12 @@
             this.health = health;
         }
 
-        public int Health { get; set; }
-        public float MouseX { get; set; }
-        public float MouseY { get; set; }
-        public float PosX { get; set; }
-        public float PosY { get; set; }
-        public float PosZ { get; set; }
+        public int Health_Value { get; set; }
+
+        public float PosX_Value { get; set; }
+
+        public float PosY_Value { get; set; }
+
+        public float PosZ_Value { get; set; }
     }
 }
