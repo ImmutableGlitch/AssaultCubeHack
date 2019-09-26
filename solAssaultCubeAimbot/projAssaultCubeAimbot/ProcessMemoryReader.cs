@@ -91,7 +91,6 @@ namespace ProcessMemoryReaderLib
             return ptrBytesReaded.ToInt32();
         }
 
-        //We use this to 
         public int ReadMultiLevelPointer(int MemoryAddress, uint bytesToRead, Int32[] offsetList)
         {
             IntPtr procHandle = ProcessMemoryReaderApi.OpenProcess(ProcessMemoryReaderApi.PROCESS_VM_READ | ProcessMemoryReaderApi.PROCESS_VM_WRITE | ProcessMemoryReaderApi.PROCESS_VM_OPERATION, 1, (uint)m_ReadProcess.Id);
